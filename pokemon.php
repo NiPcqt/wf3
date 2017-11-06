@@ -27,7 +27,7 @@ $tour= 0;
 // Boucle de combat
 do{
 
-    echo"<h2> Tour :" .++$tour ."</h2>";
+    echo"<h2> Tour :" .++$tour . "à" .date('H:i:s')."</h2>";
 
 // pikachu attaque bulbizarre
 echo "<p>Pikachu attaque bulbizarre</p>";
