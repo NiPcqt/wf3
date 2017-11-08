@@ -5,7 +5,7 @@
 
   <title>Formulaire d'insertion en base de donnée</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../css/style.css">
 
   <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
@@ -15,7 +15,7 @@
 <body>
 
 <?php
-  require_once('function.php');
+  require_once('../inc/function.php');
   $errors = [];
   $form_errors = [];
   // Configuration de la base de données à placer dans un fichier différent pour la production
@@ -24,7 +24,7 @@
   define('PASS', ''); // Mot de passe de connexion à la base
   define('DB', 'pokemon'); // Base de données sur laquelle on va faire les requêtes
   $db_options = array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING,// On affiche des warnings pour les erreurs, à commenter en prod (valeur par défaut PDO::ERRMODE_SILENT)
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,// On affiche des warnings pour les erreurs, à commenter en prod (valeur par défaut PDO::ERRMODE_SILENT)
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC   // Mode ASSOC par défaut pour les fetch
   );
   $dsn = 'mysql:host=' . HOST . ';dbname=' . DB;
@@ -46,7 +46,17 @@
       // ici nous ferons l'insertion
       $query = $db->prepare("INSERT INTO pokedex(nom_proprietaire) VALUES (:nom_proprietaire)");
       $query->bindParam(':nom_proprietaire', $nom_proprietaire, PDO::PARAM_STR);
-      $query->execute();
+      // exécution de la requête préparée
+      try {
+        $query->execute();
+      } catch(PDOException $e) {
+        // Il y a eu une erreur
+        if ($e->getCode() == "23000")
+          $form_errors['nom_proprietaire'] = "Le nom $nom_proprietaire existe déjà !";
+        else {
+          $form_errors['nom_proprietaire'] = "Erreur lors de l'insertion en base : " . $e->getMessage();
+        }
+      }
     }
   }
   // Lister les pokedex enregistrés
