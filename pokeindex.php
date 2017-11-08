@@ -2,17 +2,18 @@
 <html>
 <head>
   <!-- Insérer le css ici -->
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
   <!-- Jquery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
+  <img src="img/arene.jpg"/>
 
   <?php
-    require("pokemon.php");
+    require("inc/pokemon.php");
   ?>
 
-  <form>
+  <form method="post">
     <fieldset>
       <legend>Pokemon 1 :
         <select name="pokemon1" <?php echo isset($form_error['pokemon1']) ? 'class="error"' : ''; ?>>
@@ -46,6 +47,7 @@
     <button type="submit">Combattez !</button>
   </form>
 
+  <script type="text/javascript" src="js/function.js"></script>
   <script type="text/javascript">
     var pokemons = [];
     <?php
@@ -56,14 +58,6 @@
         }
       }
     ?>
-    function changePokemon(event) {
-      selPokemon = $(this).val();
-      // Récupération de la valeur name de l'élément courant
-      select = $(this).attr('name');
-      $("[name='pv_" + select + "']").val(pokemons[selPokemon]["pv"]);
-      $("[name='defense_" + select + "']").val(pokemons[selPokemon]["defense"]);
-      $("[name='attaque_" + select + "']").val(pokemons[selPokemon]["attaque"]);
-    }
     $(document).ready(function() {
       // Tous les select avec un attribut name qui commence par 'pokemon'
       $("select[name^='pokemon']").on("change", changePokemon);
