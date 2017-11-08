@@ -5,7 +5,7 @@
 
   <title>Formulaire d'insertion en base de donnée</title>
 
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="style.css">
 
   <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
@@ -15,7 +15,7 @@
 <body>
 
 <?php
-  require_once('../inc/function.php');
+  require_once('function.php');
   $errors = [];
   // Configuration de la base de données à placer dans un fichier différent pour la production
   define('HOST', 'localhost'); // Domaine ou IP du serveur ou est située la base de données
