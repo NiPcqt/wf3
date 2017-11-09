@@ -113,7 +113,7 @@
 ?>
 
   <form method="post">
-    <input type="hidden" name="insertPokedex" value="1"/>
+    <input type="hidden" name="insertPokemon" value="1"/>
 
     <label for="nom_proprietaire">Nom du proprietaire : </label>
     <input id="nom_proprietaire" name="nom_proprietaire" type="text" <?php echo isset($form_errors['nom_proprietaire']) ? 'class="error"' : '' ?> />
@@ -122,8 +122,8 @@
     <button type="submit">Ajouter</button>
   </form>
 
-  <form method="post" id="deletePokedex">
-    <input type="hidden" name="deletePokedex" value="1"/>
+  <form method="post" id="deletePokemon">
+    <input type="hidden" name="deletePokemon" value="1"/>
     <input type="hidden" id="id_delete" name="id_delete" value=""/>
   </form>
 
