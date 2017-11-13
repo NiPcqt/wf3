@@ -14,168 +14,177 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </head>
 <body>
-  <?php
-    require_once('pokemon_function.php');
-    // Liste des erreurs fonctionnelles (base de données, technique)
-    $errors = [];
-    // Liste des erreurs liées aux formulaires (mauvaises données, ...)
-    $form_errors = [];
-    // Configuration de la base de données à placer dans un fichier différent pour la production
-    define('HOST', 'localhost'); // Domaine ou IP du serveur ou est située la base de données
-    define('USER', 'root'); // Nom d'utilisateur autorisé à se connecter à la base
-    define('PASS', ''); // Mot de passe de connexion à la base
-    define('DB', 'pokemon'); // Base de données sur laquelle on va faire les requêtes
-    $db_options = array(
-      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,// On affiche des warnings pour les erreurs, à commenter en prod (valeur par défaut PDO::ERRMODE_SILENT)
-      PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC   // Mode ASSOC par défaut pour les fetch
-    );
-    // Connexion à la base de donnée
-    $dsn = 'mysql:host=' . HOST . ';dbname=' . DB;
-    try {
-      $db = new PDO($dsn, USER, PASS, $db_options);
-    } catch (PDOException $e) {
-      $errors[] = "Erreur de connexion : " . $e->getMessage();
-    }
-    if (formIsSubmit('deletePokemon')) {
-      $id_delete = intval($_POST['id_delete']);
-      $query = $db->prepare("DELETE FROM pokemon WHERE id = :id;");
-      $query->bindParam(':id', $id_delete, PDO::PARAM_INT);
-      // exécution de la requête préparée
-      try {
-        $query->execute();
-      } catch(PDOException $e) {
-        // Il y a eu une erreur
-        /*if ($e->getCode() == "23000")
-          $form_errors['nom_proprietaire'] = "Le nom $nom_proprietaire existe déjà !";
-        else {
-          $form_errors['nom_proprietaire'] = "Erreur lors de l'insertion en base : " . $e->getMessage();
-        }*/
-        var_dump($e);
-      }
-      showMessage($query->rowCount() . ' lignes supprimées !');
-    }
-    if (formIsSubmit('insertPokemon')) {
-      // code d'insertion
-      $numero_pokemon = $_POST['numero_pokemon'];
-      $nom_pokemon = $_POST['nom_pokemon'];
-      $experience_pokemon = $_POST['experience_pokemon'];
-      $vie_pokemon = $_POST['vie_pokemon'];
-      $defense_pokemon = $_POST['defense_pokemon'];
-      $attaque_pokemon = $_POST['attaque_pokemon'];
-      $pokedex_pokemon = $_POST['pokedex_pokemon'];
-      // Validation
-      if (!filter_var($numero_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)))) {
-        $form_errors['numero_pokemon'] = "Le numéro doit être un nombre strictement supérieur à 0";
-      }
-      if (empty($nom_pokemon)) {
-        $form_errors['nom_pokemon'] = "Le nom doit être renseigné";
-      } elseif (strlen($nom_pokemon) > 50) {
-        $form_errors['nom_pokemon'] = "Le nom doit faire 50 caractères maximum";
-      }
-      if (!filter_var($experience_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 0)))) {
-        $form_errors['experience_pokemon'] = "L'expérience doit être un nombre supérieur ou égal à 0";
-      }
-      if (!filter_var($vie_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)))) {
-        $form_errors['vie_pokemon'] = "La vie doit être un nombre strictement supérieur à 0";
-      }
-      if (!filter_var($defense_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)))) {
-        $form_errors['defense_pokemon'] = "La défense doit être un nombre strictement supérieur à 0";
-      }
-      if (!filter_var($attaque_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)))) {
-        $form_errors['attaque_pokemon'] = "L'attaque doit être un nombre strictement supérieur à 0";
-      }
-      if (!filter_var($pokedex_pokemon, FILTER_VALIDATE_INT, array("options" => array("min_range" => 0)))) {
-        $form_errors['attaque_pokemon'] = "La valeur du pokedex n'est pas valide";
-      }
-      /*if (empty($defense_pokemon)) {
-        $form_errors['defense_pokemon'] = "La défence doit être renseignée";
-      } elseif (!is_int($defense_pokemon)) {
-        $form_errors['defense_pokemon'] = "La défense doit être un nombre";
-      } elseif ($defense_pokemon <= 0) {
-        $form_errors['defense_pokemon'] = "La défense doit être strictement supérieure à 0";
-      }*/
-      // S'il n'y a pas eu d'erreur ET que la connexion existe
-      if (count($form_errors) == 0 && isset($db)) {
-        $query = $db->prepare("
-          INSERT INTO pokemon(numero,  nom,  experience,  vie,  defense,  attaque,  id_pokedex)
-            VALUES           (:numero, :nom, :experience, :vie, :defense, :attaque, :id_pokedex)
-        ");
-        $query->bindParam(':numero', $numero_pokemon, PDO::PARAM_INT);
-        $query->bindParam(':nom', $nom_pokemon, PDO::PARAM_STR);
-        $query->bindParam(':experience', $experience_pokemon, PDO::PARAM_INT);
-        $query->bindParam(':vie', $vie_pokemon, PDO::PARAM_INT);
-        $query->bindParam(':defense', $defense_pokemon, PDO::PARAM_INT);
-        $query->bindParam(':attaque', $attaque_pokemon, PDO::PARAM_INT);
-        $query->bindParam(':id_pokedex', $pokedex_pokemon, PDO::PARAM_INT);
-        // exécution de la requête préparée
-        try {
-          $query->execute();
-        } catch(PDOException $e) {
-          // Il y a eu une erreur
-          /*if ($e->getCode() == "23000")
-            $form_errors['nom_proprietaire'] = "Le nom $nom_proprietaire existe déjà !";
-          else {
-            $form_errors['nom_proprietaire'] = "Erreur lors de l'insertion en base : " . $e->getMessage();
-          }*/
-          var_dump($e);
-        }
-      }
-    }
-    // Liste des pokedex
-    $pokedexs = [];
-    $pokedex_options = "";
-    if (!$query = $db->query('SELECT id, nom_proprietaire FROM pokedex')) {
-      $errors[] = "Erreur lors de la création de la requête";
-    } else {
-      $pokedexs = $query->fetchAll();
-      foreach($pokedexs as $pokedex) {
-        $pokedex_options .= '<option value="' . $pokedex['id'] . '">' . $pokedex['nom_proprietaire'] . '</option>';
-      }
-    }
-    // Affichage des pokemons
-    if (!$query = $db->query('SELECT * FROM pokemon')) {
-      $errors[] = "Erreur lors de la création de la requête";
-    }
-    $table = "";
-    while ($result = $query->fetch()) {
-      // Première ligne : affichage des titres de colonnes
-      if ($table == "") {
-        $table = "
-    <table class=\"table table-hover table-responsive-sm\">
-      <caption>Liste de tous les pokemons existants</caption>
-      <thead>
-        <tr>
-          <th scope=\"col\">
-          </th>
-          <th scope=\"col\">
-          " . implode('</th><th scope=\"col\">', array_keys($result)) . "
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        ";
-      }
-      // Ajout d'une ligne dans la table
-      $table .= "
-        <tr>
-          <td scope=\"row\">
-            <a onclick=\"formSubmit('deletePokemon', 'id_delete', '" . $result['id'] . "');\"><i class=\"fa fa-trash-o fa-fw\" aria-hidden=\"true\"></i></a>
-          </td>
-          <td>
-          " . implode('</td><td>', $result) . "
-          </td>
-        </tr>
-      ";
-    }
-    if($table == "") {
-      null;//$errors[] = "Aucune ligne trouvée";
-    } else {
-      $table .= "
-      </tbody>
-    </table>
-      ";
-    }
-  ?>
+ <?php
+// Entête HTML ce require permet de charger toutes les balises d'en-tête de la page HTML
+require('header.php');
+// Gestion de la base de donnée : paramètres et fonctions de bases
+require('../inc/database.php');
+$errors = [];
+$form_errors = [];
+// Connexion à la base
+if (!$db = connexion($msg))
+  echo "Erreur : " . implode($msg);
+if (!isset($_GET['id']))
+  die("Veuillez préciser un id de pokémon !");
+$id = $_GET['id'];
+$mode_edit = (isset($_GET['edit']) ? $_GET['edit'] : 0) == 1;
+$query = $db->prepare("
+  SELECT numero, nom, experience, vie, defense, attaque, nom_proprietaire
+    FROM pokemon
+      LEFT JOIN pokedex on (id_pokedex = pokedex.id)
+    WHERE pokemon.id=:id
+");
+$query->bindParam(':id', $id, PDO::PARAM_INT);
+$query->execute();
+if (!$result = $query->fetch())
+  die("Pokémon id $id inconnu !");
+$title = ($mode_edit ? "Modification" : "Consultation") . " du pokemon $id";
+$image = "../img/pokeball.png";
+?>
+
+<div class="container">
+  <h1 class="text-center"><?php echo $title ?></h1>
+  <div class="row align-items-center">
+    <div class="col-sm-4 d-none d-sm-block">
+      <img class="img-fluid mx-auto" src="<?php echo $image;?>" alt="" />
+    </div> <!-- col -->
+    <div class="col-xs-12 col-sm-8">
+      <form method="post" id="updatePokemon" enctype="multipart/form-data">
+        <input type="hidden" name="updatePokemon" value="1"/>
+        <div class="form-control">
+          <div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="numero">Numéro</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['numero']) ? 'is-invalid' : '' ?>"
+                  id="numero"
+                  name="numero"
+                  value="<?php echo isset($result['numero']) ? $result['numero'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['numero']) ? '<div class="invalid-feedback">' . $form_errors['numero'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="nom">Nom</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['nom']) ? 'is-invalid' : '' ?>"
+                  id="nom"
+                  name="nom"
+                  value="<?php echo isset($result['nom']) ? $result['nom'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['nom']) ? '<div class="invalid-feedback">' . $form_errors['nom'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="experience">Expérience</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['experience']) ? 'is-invalid' : '' ?>"
+                  id="experience"
+                  name="experience"
+                  value="<?php echo isset($result['experience']) ? $result['experience'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['experience']) ? '<div class="invalid-feedback">' . $form_errors['experience'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="vie">Vie</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['vie']) ? 'is-invalid' : '' ?>"
+                  id="vie"
+                  name="vie"
+                  value="<?php echo isset($result['vie']) ? $result['vie'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['vie']) ? '<div class="invalid-feedback">' . $form_errors['vie'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="defense">Défense</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['defense']) ? 'is-invalid' : '' ?>"
+                  id="defense"
+                  name="defense"
+                  value="<?php echo isset($result['defense']) ? $result['defense'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['defense']) ? '<div class="invalid-feedback">' . $form_errors['defense'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="attaque">Attaque</label>
+              <div class="col-sm-9">
+                <input
+                  type="text"
+                  class="form-control <?php echo isset($form_errors['attaque']) ? 'is-invalid' : '' ?>"
+                  id="attaque"
+                  name="attaque"
+                  value="<?php echo isset($result['attaque']) ? $result['attaque'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                <?php echo isset($form_errors['attaque']) ? '<div class="invalid-feedback">' . $form_errors['attaque'] . '</div>' : '' ?>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="pokedex">Propriétaire</label>
+              <div class="col-sm-9">
+                <?php if ($mode_edit) : ?>
+                <select
+                  class="form-control <?php echo isset($form_errors['pokedex']) ? 'is-invalid' : '' ?>"
+                  id="pokedex"
+                  name="pokedex"
+                  value="<?php echo isset($result['pokedex']) ? $result['pokedex'] : '' ?>"
+                  <?php echo $mode_edit ? '' : 'readonly' ?>
+                >
+                  <option value="">- Aucun -</option>
+                  <?php echo $pokedex_options; ?>
+                </select>
+                <?php echo isset($form_errors['pokedex']) ? '<div class="invalid-feedback">' . $form_errors['pokedex'] . '</div>' : '' ?>
+                <?php else : ?>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="attaque"
+                  name="attaque"
+                  value="<?php echo isset($result['nom_proprietaire']) ? $result['nom_proprietaire'] : '' ?>"
+                  readonly
+                >
+                <?php endif; ?>
+              </div>
+            </div>
+            <?php if ($mode_edit) : ?>
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label" for="image">Nouvelle image</label>
+              <div class="col-sm-9">
+              <input type="file" id="image" name="image" accept="image/*"/>
+            </div>
+            <?php endif; ?>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">Valider</button>
+            <button type="reset" class="btn btn-secondary">Reset</button>
+          </div>
+        </div>
+      </form>
+    </div><!-- col -->
+  </div> <!-- row -->
+</div> <!-- container -->
+
+<?php
+// Fin du HTML
+require('footer.php');
 
   <div class="text-center">
     <img src="img/pokemon.png" alt="" style="width: 30%;">
